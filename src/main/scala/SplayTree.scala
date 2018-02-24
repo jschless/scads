@@ -7,37 +7,32 @@
 
 **/
 
-object SplayTree {
 
-  trait MSet { //characteristic functions of a mutable set
-    def isEmpty: Boolean
-    def contains(x: Int): Boolean
-    def add(x: Int): Unit
-    def remove(x: Int): Unit
+//Set object holds SplayTree
+
+
+class MSet { //characteristic functions of a mutable set
+  private var tree = new SplayTree
+  def isEmpty: Boolean = {
+    (tree == Empty)
   }
 
-  case class Node(item: Int, left: MSet, right: MSet) extends MSet{
-    def isEmpty: Boolean = {
-      ???
-    }
+  def contains(x: Int): Boolean
+  def add(x: Int): this.type
+  def remove(x: Int): this.type
 
-    def contains(x: Int): Boolean = {
-      ???
-    }
-
-    def add(x: Int): Unit = {
-      ???
-    }
-
-    def remove(x: Int): Unit = {
-      ???
-    }
-  }
-
-  case object Empty extends MSet {
-    def isEmpty = true
-    def contains(x: Int) = false
-    def add(x: Int) = Node(x, Empty, Empty)
-    def remove(x: Int) = throw new Exception("Cannot remove from an empty set")
-  }
 }
+
+abstract class SplayTree {
+  def splay(right: Boolean): SplayTree
+  
+}
+
+case class Node(item: Int,var left: SplayTree, var right: SplayTree) extends SplayTree{
+  def splay(right: Boolean) = this
+}
+
+case object Empty extends SplayTree {
+  def splay(right: Boolen) = this
+}
+
