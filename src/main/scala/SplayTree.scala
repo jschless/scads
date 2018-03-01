@@ -10,7 +10,6 @@
 
 //Set object holds SplayTree
 
-
 class MSet { //characteristic functions of a mutable set
   private var tree: SplayTree = Empty
   def isEmpty: Boolean = {
@@ -21,54 +20,74 @@ class MSet { //characteristic functions of a mutable set
     tree.contains(x, "")._1
   }
   def add(x: Int): this.type = {
-    ???
+    if (this.contains(x)) this
+    else {
+      tree = tree match {
+        case Empty => Node(x,Empty, Empty)
+        case Node(n, a, b) => Node(n, a, b).insert(x)
+      }
+      this.contains(x)
+      this
+    }
   }
   def remove(x: Int): this.type = {
     ???
   }
 
+  def add(x: Int*): this.type = {
+    x.foreach(add)
+    this
+    //a.asInstanceOf[MSet.this.type]
+  }
+
+  override def toString: String = tree.toString
+
 }
 
 abstract class SplayTree() {
-  //def splay(): SplayTree
-  def rotateLeft: Node
-  def rotateRight: Node
-  def help(x: Int): String
+  def rotateLeft: Node  
+  def rotateRight: Node 
+  def help(x: Int): String //helper for printing (RENAME)
   def contains(x: Int, str: String): (Boolean, String, Boolean)
-  def splay(str: String): SplayTree
+  def splay(str: String): SplayTree 
+  def insert(x: Int): Node //always get a node when you insert something
+
 }
 
 case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends SplayTree{
 
-  def splay(str: String): Node.this.type = str match {
+  def splay(str: String): this.type = str match {
     case "LL" => this.rotateRight.rotateRight
     case "RR" => this.rotateLeft.rotateLeft
     case "LR" => {
       (this.right.asInstanceOf[Node.this.type].rotateRight)
       this.rotateLeft
-      //this
+      this
     }
     case "RL" => {
       this.left.asInstanceOf[Node.this.type].rotateLeft
       this.rotateRight
-      //this
+      this
     }
     case "L" => this.rotateRight
     case "R" => this.rotateLeft
     case _ => this
   }
 
+  def insert(x: Int): Node = {
+    if (item == x) throw new Error("DUPLICATE ELEMENT IN SET")
+    else if (x < item) Node(item, left.insert(x), right)
+    else Node(item, left, right.insert(x))
+  }
+
   def contains(x: Int, str: String): (Boolean, String, Boolean) = {
     var bool = false //in set
     var f = false //splay
     var ans = ""
-    if (x == item){
-      //println("String at bottom: " + str)
-      return (true, str, false)
-    }
+    if (x == item) return (true, str, false)
     else if (x < item) {
-      println("hello")
       val (a, b, c) = left.contains(x, 'L' +: str)
+      //val (bool, ans, f) = left.contains(x, 'L' +: str)
       bool = a
       ans = b
       f = c
@@ -77,12 +96,11 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
       val (a, b, c) = right.contains(x, 'R' +: str)
       bool = a
       ans = b
-     
       f = c
     }
 
     if (!bool) return (bool, str, f) //not in tree
-      //in set
+
     if (!f && ans.length == 1) {
       splay(ans)
       (bool, "", f)
@@ -90,17 +108,13 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
     else if (!f)
       (bool, ans, !f) //don't need to edit
     else {
-      //println("SPLAY")
-      //println("String: " + ans)
       splay(ans.take(2)) //splay on first two
       (bool, ans.drop(2), !f)
      }
     }
   
-
-
   def rotateLeft: Node.this.type  = right match {
-    case Empty => throw new Exception("trying to rotate an empty node")
+    case Empty => throw new IndexOutOfBoundsException("trying to rotate an empty node")
     case Node(x, a, b) => {
       val cloneItem = item
       val cloneLeft = left
@@ -112,7 +126,7 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
     }
   }
   def rotateRight: Node.this.type = left match {
-    case Empty => throw new Exception("trying to rotate an empty node")
+    case Empty => throw new IndexOutOfBoundsException("trying to rotate an empty node")
     case Node(x, a, b) => {
       val cloneItem = item
       val cloneRight = right
@@ -139,6 +153,8 @@ case object Empty extends SplayTree {
   def splay(str: String): SplayTree = Empty
   def help(spaces: Int): String = " " * spaces + "X\n"
   override def toString: String = help(0)
+  def insert(x: Int): Node = Node(x, Empty, Empty)
+
 }
 
 def test(): Unit = {
