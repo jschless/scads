@@ -40,7 +40,29 @@ class MSet { //characteristic functions of a mutable set
     //a.asInstanceOf[MSet.this.type]
   }
 
-  override def toString: String = tree.toString
+
+  //https://stackoverflow.com/questions/4965335/how-to-print-binary-tree-diagram/43348945#43348945
+  def pretty: String = {
+    def work(tree: Node, prefix: String, isTail: Boolean): String = {
+      val (line, bar) = if (isTail) ("|__ ", " ") else ("|-- ", "|")
+      val curr = s"${prefix}${line}${tree.item}"
+      val rights = tree.right match {
+        case Empty  => s"${prefix}${bar}   |-- X"
+        case Node(x, le, ri) => work(Node(x, le, ri), s"${prefix}${bar}   ", false)
+      }
+
+      val lefts = tree.left match {
+        case Empty    => s"${prefix}${bar}   |-- X"
+        case Node(x, le, ri) => work(Node(x, le, ri), s"${prefix}${bar}   ", true)
+      }
+
+      s"${curr}\n${rights}\n${lefts}"
+
+    }
+    if (isEmpty) return "Empty"
+    else work(tree.asInstanceOf[Node], "", true)
+  }
+  override def toString: String = pretty
 
 }
 
@@ -51,7 +73,8 @@ abstract class SplayTree() {
   def contains(x: Int, str: String): (Boolean, String, Boolean)
   def splay(str: String): SplayTree 
   def insert(x: Int): Node //always get a node when you insert something
-
+  def verticalTraversal(level: Int): List[(Int, Int)]
+  def height: Int
 }
 
 case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends SplayTree{
@@ -143,7 +166,28 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
   def help(spaces: Int): String = {
     (" " * spaces + item + "\n") + left.help(spaces+1) + right.help(spaces+1)
   }
-  
+
+  def verticalTraversal(level: Int): List[(Int, Int)] = {
+    (item, level) +: left.verticalTraversal(level+1) ::: right.verticalTraversal(level+1)
+  }
+/*
+  def levelList(items: List[(Int, Int)]): List[List[Int]] = {
+    // returns list of levels of the tree
+    val temp = items.sortBy(x => x._2)
+    def h(inList: List[(Int, Int)], curList: List[Int]): List[List[Int]] = {
+      if (inList.isEmpty) List.empty[List[Int]]
+      else if (curList.isEmpty) h(inList.tail, List(inList.head._1))
+      else if (inList.head._1 == curList.head) h(inList.tail, inList.head._1 +: curList)
+      else curList ::: h(inList.tail, List(inList.head._1))
+    }
+    h(temp, List.empty[Int])
+  }
+ 
+ */
+  def height: Int = {
+    1+ (right.height max left.height)
+  }
+
 }
 
 case object Empty extends SplayTree {
@@ -154,7 +198,8 @@ case object Empty extends SplayTree {
   def help(spaces: Int): String = " " * spaces + "X\n"
   override def toString: String = help(0)
   def insert(x: Int): Node = Node(x, Empty, Empty)
-
+  def verticalTraversal(level: Int): List[(Int, Int)] = List((0, level))
+  def height: Int = 0
 }
 
 def test(): Unit = {
