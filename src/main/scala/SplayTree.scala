@@ -37,7 +37,6 @@ class MSet { //characteristic functions of a mutable set
   def add(x: Int*): this.type = {
     x.foreach(add)
     this
-    //a.asInstanceOf[MSet.this.type]
   }
 
 
@@ -47,12 +46,12 @@ class MSet { //characteristic functions of a mutable set
       val (line, bar) = if (isTail) ("|__ ", " ") else ("|-- ", "|")
       val curr = s"${prefix}${line}${tree.item}"
       val rights = tree.right match {
-        case Empty  => s"${prefix}${bar}   |-- X"
+        case Empty  => s"${prefix}${bar}   |--"
         case Node(x, le, ri) => work(Node(x, le, ri), s"${prefix}${bar}   ", false)
       }
 
       val lefts = tree.left match {
-        case Empty    => s"${prefix}${bar}   |-- X"
+        case Empty    => s"${prefix}${bar}   |--"
         case Node(x, le, ri) => work(Node(x, le, ri), s"${prefix}${bar}   ", true)
       }
 
@@ -73,7 +72,6 @@ abstract class SplayTree() {
   def contains(x: Int, str: String): (Boolean, String, Boolean)
   def splay(str: String): SplayTree 
   def insert(x: Int): Node //always get a node when you insert something
-  def verticalTraversal(level: Int): List[(Int, Int)]
   def height: Int
 }
 
@@ -83,14 +81,14 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
     case "LL" => this.rotateRight.rotateRight
     case "RR" => this.rotateLeft.rotateLeft
     case "LR" => {
-      (this.right.asInstanceOf[Node.this.type].rotateRight)
+      this.right.rotateRight//.rotateLeft doesn't work
       this.rotateLeft
-      this
+      //this
     }
     case "RL" => {
-      this.left.asInstanceOf[Node.this.type].rotateLeft
+      this.left.rotateLeft
       this.rotateRight
-      this
+      //this
     }
     case "L" => this.rotateRight
     case "R" => this.rotateLeft
@@ -124,7 +122,7 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
 
     if (!bool) return (bool, str, f) //not in tree
 
-    if (!f && ans.length == 1) {
+    if (!f && ans.length == 1) { //one step left
       splay(ans)
       (bool, "", f)
     }
@@ -167,23 +165,6 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
     (" " * spaces + item + "\n") + left.help(spaces+1) + right.help(spaces+1)
   }
 
-  def verticalTraversal(level: Int): List[(Int, Int)] = {
-    (item, level) +: left.verticalTraversal(level+1) ::: right.verticalTraversal(level+1)
-  }
-/*
-  def levelList(items: List[(Int, Int)]): List[List[Int]] = {
-    // returns list of levels of the tree
-    val temp = items.sortBy(x => x._2)
-    def h(inList: List[(Int, Int)], curList: List[Int]): List[List[Int]] = {
-      if (inList.isEmpty) List.empty[List[Int]]
-      else if (curList.isEmpty) h(inList.tail, List(inList.head._1))
-      else if (inList.head._1 == curList.head) h(inList.tail, inList.head._1 +: curList)
-      else curList ::: h(inList.tail, List(inList.head._1))
-    }
-    h(temp, List.empty[Int])
-  }
- 
- */
   def height: Int = {
     1+ (right.height max left.height)
   }
@@ -198,13 +179,5 @@ case object Empty extends SplayTree {
   def help(spaces: Int): String = " " * spaces + "X\n"
   override def toString: String = help(0)
   def insert(x: Int): Node = Node(x, Empty, Empty)
-  def verticalTraversal(level: Int): List[(Int, Int)] = List((0, level))
   def height: Int = 0
-}
-
-def test(): Unit = {
-  val test: SplayTree = Node(2, Node(1, Empty, Empty), Node(6, Node(4, Empty, Empty), Node(8,Empty,Empty)))
-  val test2: SplayTree = Node(2, Node(1, Node(0, Empty, Empty), Node(1, Empty, Empty)), Node(6, Node(4, Node(-5, Empty, Empty), Node(-20, Empty, Empty)), Node(8,Node(-40, Empty, Empty), Node(-55,Empty, Empty))))
-  val test3: SplayTree = Node(12, Node(5, Empty,Empty), Node(25, Node(20, Node(15, Node(13, Empty, Empty), Node(18, Node(16, Empty, Empty), Empty)), Node(24, Empty, Empty)), Node(30, Empty, Empty))) 
-  val test4: SplayTree = Node(8, Node(7, Node(6, Node(5, Node(4, Node(3, Node(2, Node(1, Empty, Empty), Empty), Empty), Empty), Empty), Empty), Empty), Empty)
 }
