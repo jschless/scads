@@ -2,7 +2,7 @@
   Authors: Joe Schlessinger and Matthew Yuan
   Date Created: 21 February, 2018
   Version: v0.0.1
-  Description: This is a baseline implementation 
+  Description: This is a baseline implementation
   of a Splay Tree that only holds Ints.
 
 **/
@@ -66,12 +66,14 @@ class MSet { //characteristic functions of a mutable set
 }
 
 abstract class SplayTree() {
-  def rotateLeft: Node  
-  def rotateRight: Node 
+  def rotateLeft: Node
+  def rotateRight: Node
   def help(x: Int): String //helper for printing (RENAME)
   def contains(x: Int, str: String): (Boolean, String, Boolean)
-  def splay(str: String): SplayTree 
+  def splay(str: String): SplayTree
   def insert(x: Int): Node //always get a node when you insert something
+  def remove(x: Int): SplayTree
+  def max: Int
   def height: Int
 }
 
@@ -101,6 +103,23 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
     else Node(item, left, right.insert(x))
   }
 
+  def remove(x: Int): SplayTree = {
+  	val exists = this.contains(x,"")._1
+  	if(!exists) throw new Error("Element not in set")
+    else this.left match {
+      case Empty => this.right
+      case Node(item,l,r) => Node(item,l,this.right)
+    }
+    // else if(this.left == Empty) this.right
+  	// else {
+  	// 	this.left.contains(this.max,"")
+  	// 	Node(this.left.item,this.left.left,this.right)
+  	// }
+  }
+  def max: Int = {
+  	if(this.right == Empty) item
+  	else this.right.max
+  }
   def contains(x: Int, str: String): (Boolean, String, Boolean) = {
     var bool = false //in set
     var f = false //splay
@@ -133,7 +152,7 @@ case class Node(var item: Int,var left: SplayTree, var right: SplayTree) extends
       (bool, ans.drop(2), !f)
      }
     }
-  
+
   def rotateLeft: Node.this.type  = right match {
     case Empty => throw new IndexOutOfBoundsException("trying to rotate an empty node")
     case Node(x, a, b) => {
@@ -179,5 +198,7 @@ case object Empty extends SplayTree {
   def help(spaces: Int): String = " " * spaces + "X\n"
   override def toString: String = help(0)
   def insert(x: Int): Node = Node(x, Empty, Empty)
+  def remove(x: Int): SplayTree = throw new Exception("Element does not exist")
+  def max: Int = throw new Exception("No elements")
   def height: Int = 0
 }
